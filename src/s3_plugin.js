@@ -47,11 +47,13 @@ export default class S3Plugin {
       s3Options: _.merge({}, DEFAULT_S3_OPTIONS, s3Options)
     }
 
-    if (!this.cdnizerOptions.files)
-      this.cdnizerOptions.files = []
+
 
     if (!this.cdnizerOptions)
       this.noCdnizer = true
+    else
+      if (!this.cdnizerOptions.files)
+        this.cdnizerOptions.files = []
   }
 
   apply(compiler) {
@@ -98,15 +100,13 @@ export default class S3Plugin {
     return file.search('/') === -1 ? file : file.match(/[^\/]+$/)[0]
   }
 
-  getAssetFiles({chunks, options}) {
+  getAssetFiles({assets, options}) {
     var publicPath = options.output.publicPath || options.output.path
-
-    var files = _(chunks)
-      .pluck('files')
+    var files = _(assets)
+      .pluck('existsAt')
       .flatten()
-      .map(file => path.resolve(publicPath, file))
+      .map(file => path.resolve('.', file))
       .value()
-
     return this.filterAllowedFiles(files)
   }
 
@@ -222,8 +222,8 @@ export default class S3Plugin {
       localFile: file,
       s3Params
     })
-
-    this.cdnizerOptions.files.push('*' + fileName + '*')
+    if (this.cdnizerOptions)
+      this.cdnizerOptions.files.push('*' + fileName + '*')
 
     var promise = new Promise((resolve, reject) => {
       upload.on('error', reject)

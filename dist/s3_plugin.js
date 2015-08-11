@@ -93,9 +93,7 @@ var S3Plugin = (function () {
       s3Options: _lodash2['default'].merge({}, DEFAULT_S3_OPTIONS, s3Options)
     };
 
-    if (!this.cdnizerOptions.files) this.cdnizerOptions.files = [];
-
-    if (!this.cdnizerOptions) this.noCdnizer = true;
+    if (!this.cdnizerOptions) this.noCdnizer = true;else if (!this.cdnizerOptions.files) this.cdnizerOptions.files = [];
   }
 
   _createClass(S3Plugin, [{
@@ -115,6 +113,7 @@ var S3Plugin = (function () {
       this.options.directory = this.options.directory || compiler.options.output.path || compiler.options.output.context || '.';
 
       compiler.plugin('after-emit', function (compilation, cb) {
+        console.log('S3 AFTER EMIT', compilation.assets);
         if (!hasRequiredOptions) {
           compilation.errors.push(new Error('S3Plugin: Must provide ' + REQUIRED_S3_OPTS.join(', ')));
           cb();
@@ -150,15 +149,14 @@ var S3Plugin = (function () {
   }, {
     key: 'getAssetFiles',
     value: function getAssetFiles(_ref) {
-      var chunks = _ref.chunks;
+      var assets = _ref.assets;
       var options = _ref.options;
 
       var publicPath = options.output.publicPath || options.output.path;
-
-      var files = (0, _lodash2['default'])(chunks).pluck('files').flatten().map(function (file) {
-        return _path2['default'].resolve(publicPath, file);
+      var files = (0, _lodash2['default'])(assets).pluck('existsAt').flatten().map(function (file) {
+        return _path2['default'].resolve('.', file);
       }).value();
-
+      console.log('files', files);
       return this.filterAllowedFiles(files);
     }
   }, {
@@ -190,7 +188,8 @@ var S3Plugin = (function () {
       var htmlFiles = _options.htmlFiles;
 
       var allHtml = (htmlFiles || _fs2['default'].readdirSync(directory).filter(function (file) {
-        return /\.html$/.test(file);
+        return (/\.html$/.test(file)
+        );
       })).map(function (file) {
         return _path2['default'].resolve(directory, file);
       });
@@ -301,8 +300,7 @@ var S3Plugin = (function () {
         localFile: file,
         s3Params: s3Params
       });
-
-      this.cdnizerOptions.files.push('*' + fileName + '*');
+      if (this.cdnizerOptions) this.cdnizerOptions.files.push('*' + fileName + '*');
 
       var promise = new Promise(function (resolve, reject) {
         upload.on('error', reject);
