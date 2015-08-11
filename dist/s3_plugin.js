@@ -113,7 +113,6 @@ var S3Plugin = (function () {
       this.options.directory = this.options.directory || compiler.options.output.path || compiler.options.output.context || '.';
 
       compiler.plugin('after-emit', function (compilation, cb) {
-        console.log('S3 AFTER EMIT', compilation.assets);
         if (!hasRequiredOptions) {
           compilation.errors.push(new Error('S3Plugin: Must provide ' + REQUIRED_S3_OPTS.join(', ')));
           cb();
@@ -156,7 +155,6 @@ var S3Plugin = (function () {
       var files = (0, _lodash2['default'])(assets).pluck('existsAt').flatten().map(function (file) {
         return _path2['default'].resolve('.', file);
       }).value();
-      console.log('files', files);
       return this.filterAllowedFiles(files);
     }
   }, {
